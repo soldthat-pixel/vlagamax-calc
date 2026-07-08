@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2455af">
+<title>Влагамакс — калькулятор стоимости увлажнения (демо)</title>
+<!--
+  ДЕМО-версия для пересылки. Показывает калькулятор так, как он будет выглядеть
+  секцией на странице сайта (Tilda). Полностью самодостаточный файл: открывается
+  на любом устройстве офлайн, интернет не нужен.
+  Цены — тот же блок, что в рабочем файле Влагамакс_Калькулятор_сайт.html.
+-->
+<style>
+  :root{
+    --text:#1d1d1f;
+    --muted:#6a6a6a;
+    --line:#e6e6e9;
+    --card:#f7f8fa;
+    --accent:#2455af;
+    --accent-dark:#1d4da4;
+    --white:#ffffff;
+    --page:#eceef2;      /* фон «страницы сайта» вокруг блока */
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:Arial, Helvetica, sans-serif;
+    color:var(--text);
+    background:var(--page);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+
+  /* контекст страницы вокруг встроенного блока */
+  .page{max-width:860px;margin:0 auto;padding:26px 16px 40px;}
+  .demo-tag{
+    text-align:center;font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 16px;
+  }
+  .brand{
+    display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 20px;
+  }
+  .brand .logo{
+    font-size:20px;font-weight:800;color:var(--accent);letter-spacing:.01em;
+  }
+  .brand .logo b{color:var(--text);font-weight:800;}
+  .brand .tag{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:10px;}
+
+  /* сам встраиваемый блок калькулятора (как секция Tilda) */
+  .calc{
+    background:var(--white);border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 10px 34px rgba(20,40,80,.07);
+    padding:32px 30px 34px;
+  }
+  h1{font-size:26px;line-height:1.22;margin:0 0 10px;font-weight:800;}
+  .lead{color:var(--muted);font-size:15.5px;margin:0 0 26px;}
+  .block-title{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;}
+
+  /* пресеты */
+  .presets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px;}
+  .preset{
+    border:1.5px solid var(--line);border-radius:12px;background:var(--white);
+    padding:15px 12px;cursor:pointer;text-align:left;transition:.15s;
+    display:flex;flex-direction:column;gap:3px;font-family:inherit;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .preset:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(36,85,175,.10);}
+  .preset:active{transform:scale(.985);}
+  .preset.active{border-color:var(--accent);background:#f2f6fd;}
+  .preset .p-name{font-weight:800;font-size:15px;color:var(--text);}
+  .preset .p-sub{font-size:12.5px;color:var(--muted);}
+
+  .divider{display:flex;align-items:center;gap:14px;margin:6px 0 22px;color:var(--muted);font-size:13.5px;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+  label{display:block;font-size:13.5px;margin-bottom:6px;color:var(--text);}
+  input[type=number]{
+    width:100%;padding:14px 14px;font-size:16px;font-family:inherit;
+    border:1.5px solid var(--line);border-radius:11px;color:var(--text);background:var(--white);
+    -moz-appearance:textfield;
+  }
+  input[type=number]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(36,85,175,.12);}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+  .btn{
+    display:block;width:100%;padding:16px 20px;font-size:16px;font-weight:800;font-family:inherit;
+    color:#fff;background:var(--accent);border:none;border-radius:12px;cursor:pointer;transition:.15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn:hover{background:var(--accent-dark);}
+  .btn:active{transform:scale(.99);}
+
+  .result{
+    margin-top:26px;border:1.5px solid var(--line);border-radius:16px;background:var(--card);
+    padding:24px 22px;display:none;
+  }
+  .result.show{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .r-params{font-size:13.5px;color:var(--muted);margin:0 0 6px;}
+  .r-label{font-size:14.5px;color:var(--text);margin:0 0 2px;}
+  .r-price{font-size:36px;font-weight:800;color:var(--accent);line-height:1.1;margin:2px 0 18px;}
+  .r-price small{font-size:19px;font-weight:800;color:var(--accent);}
+
+  .compose{list-style:none;padding:0;margin:0 0 18px;border-top:1px solid var(--line);}
+  .compose li{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px;}
+  .compose li span:first-child{color:var(--text);}
+  .compose li span:last-child{color:var(--muted);font-weight:800;white-space:nowrap;}
+
+  .disclaimer{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
+  .cta-row{display:grid;grid-template-columns:1fr;gap:10px;}
+
+  .page-foot{text-align:center;font-size:12px;color:var(--muted);margin-top:22px;}
+
+  /* планшет */
+  @media(max-width:680px){
+    .calc{padding:26px 20px 28px;border-radius:16px;}
+    h1{font-size:23px;}
+  }
+  /* телефон */
+  @media(max-width:560px){
+    .page{padding:18px 12px 30px;}
+    .presets{grid-template-columns:1fr 1fr;gap:10px;}
+    .fields{grid-template-columns:1fr;}
+    .calc{padding:22px 16px 24px;}
+    h1{font-size:21px;}
+    .lead{font-size:14.5px;margin-bottom:22px;}
+    .r-price{font-size:25px;}
+    .r-price small{font-size:15px;}
+    .brand{flex-direction:column;gap:4px;}
+    .brand .tag{border-left:none;padding-left:0;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <p class="demo-tag">Демо · так калькулятор выглядит секцией на странице сайта</p>
+
+  <div class="brand">
+    <span class="logo">Vlaga<b>Max</b></span>
+    <span class="tag">Системы увлажнения воздуха</span>
+  </div>
+
+  <section class="calc">
+    <h1>Калькулятор стоимости увлажнения «под ключ»</h1>
+    <p class="lead">Выберите готовый вариант или укажите свои параметры — и узнайте примерную стоимость установки системы увлажнения VlagaMax с монтажом и настройкой.</p>
+
+    <p class="block-title">Готовые варианты</p>
+    <div class="presets" id="presets">
+      <button class="preset" data-area="80"   data-rooms="2"><span class="p-name">Квартира</span><span class="p-sub">80 м² · 2 комнаты</span></button>
+      <button class="preset" data-area="150"  data-rooms="3"><span class="p-name">Квартира</span><span class="p-sub">150 м² · 3 комнаты</span></button>
+      <button class="preset" data-area="300"  data-rooms="5"><span class="p-name">Дом</span><span class="p-sub">300 м² · 5 комнат</span></button>
+      <button class="preset" data-area="1000" data-rooms="7"><span class="p-name">Дом</span><span class="p-sub">1000 м² · 7 комнат</span></button>
+    </div>
+
+    <div class="divider">или укажите свои параметры</div>
+
+    <div class="fields">
+      <div>
+        <label for="f_area">Площадь помещения, м²</label>
+        <input type="number" id="f_area" inputmode="numeric" min="10" max="5000" step="1" placeholder="Например, 120">
+      </div>
+      <div>
+        <label for="f_rooms">Сколько комнат увлажнять</label>
+        <input type="number" id="f_rooms" inputmode="numeric" min="1" max="30" step="1" placeholder="Например, 3">
+      </div>
+    </div>
+    <button class="btn" id="calcBtn">Рассчитать стоимость</button>
+
+    <div class="result" id="result">
+      <p class="r-params" id="r_params"></p>
+      <p class="r-label">Примерная стоимость под ключ:</p>
+      <div class="r-price" id="r_price">—</div>
+
+      <ul class="compose" id="r_compose"></ul>
+
+      <p class="disclaimer">Расчёт предварительный. Окончательная стоимость определяется после согласования схемы монтажа для вашего помещения.</p>
+      <div class="cta-row">
+        <button class="btn" id="ctaBtn">Оставить заявку на точный расчёт</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="page-foot">Влагамакс · демонстрационная версия калькулятора</p>
+</div>
+
+<script>
+/* ============================================================================
+   ★★★  ЦЕНЫ — ЕДИНСТВЕННОЕ МЕСТО ДЛЯ ОБНОВЛЕНИЯ  ★★★
+   ----------------------------------------------------------------------------
+   ЧТОБЫ ИЗМЕНИТЬ ЦЕНЫ: меняйте ТОЛЬКО числа в блоке P ниже, ничего больше
+   не трогайте. Без пробелов и знака ₽. Цены в рублях, РРЦ («с НДС 5%»).
+   Базовый источник: Тариф (РРЦ) 06_2026 (v4).
+   1) ОБОРУДОВАНИЕ — из файла «Тариф (РРЦ) .xlsx», колонка «с НДС 5%» (артикул рядом).
+   2) РАБОТЫ И УСЛУГИ — в тарифе РРЦ нет, уточнять у Влагамакс.
+   ============================================================================ */
+var P = {
+  /* --- 1. ОБОРУДОВАНИЕ (из тарифа РРЦ, колонка «с НДС 5%») --- */
+  hum10:  204750,   // VMP01IN10V — Увлажнитель на 10 мембран (до 200 м²)
+  hum6:   194250,   // VMP01IN6V  — Увлажнитель на 6 мембран (до 85 м²)
+  valve:   15750,   // VMK01TUZ   — Клапан с электроприводом (на комнату)
+  panel:   10500,   // VMPV01WTUW — Пульт с датчиком влаги/темп. (на комнату)
+  module:   2100,   // VMMKN1WTUZ — Модуль Zigbee для пульта (на комнату)
+  nozzle:   3150,   // VMS50KHW   — Сопло подачи пара (на точку)
+
+  /* --- 2. РАБОТЫ И УСЛУГИ (нет в тарифе РРЦ — уточнять у Влагамакс) --- */
+  steam:   10000,   // Паропроводы, фитинги, крепёж (комплект на точку)
+  wire:     4000,   // Провод ПВС 3×0,75 (бухта)
+  mount:   95000,   // Монтаж главного оборудования (на увлажнитель)
+  wiring:   6000,   // Прокладка проводов на пульты (на комнату)
+  mountP:   3500,   // Монтаж пультов/датчиков + модулей (на комнату)
+  visit:    5000,   // Технический выезд
+  setup:   10000    // Первичная настройка системы
+};
+
+/* Кол-во главных увлажнителей по площади (те же правила, что в инструменте КП) */
+function humCount(area, rooms){
+  var n;
+  if(area > 200)      n = Math.ceil(area/200);
+  else                n = 1;
+  if(rooms > 6 && n < 2) n = 2;   // много комнат — минимум 2 увлажнителя
+  return n;
+}
+function humModel(area){ return area > 85 ? 'hum10' : 'hum6'; }
+
+function calc(area, rooms){
+  var out = rooms;                       // точки подачи пара принимаем = числу комнат
+  var hc  = humCount(area, rooms);
+  var model = humModel(area);
+  var humSum = hc === 1 ? P[model] : P.hum10 * hc;
+
+  var equip = humSum + P.valve*rooms + P.panel*rooms + P.module*rooms + P.nozzle*out;
+  var mat   = P.steam*out + P.wire*1;
+  var work  = P.mount*hc + P.wiring*rooms + P.mountP*rooms + P.visit + P.setup;
+
+  return { total: equip+mat+work, hum: hc, rooms: rooms, out: out };
+}
+
+function fmt(n){ return n.toLocaleString('ru-RU').replace(/,/g,' '); }
+function roundK(n){ return Math.round(n/1000)*1000; }   // округляем до тысяч — «примерно»
+
+function show(area, rooms){
+  var r = calc(area, rooms);
+  document.getElementById('r_params').textContent =
+    'Площадь ' + fmt(area) + ' м² · комнат для увлажнения: ' + rooms;
+  document.getElementById('r_price').innerHTML =
+    'Примерно ' + fmt(roundK(r.total)) + ' <small>₽</small>';
+
+  var items = [
+    ['Увлажнитель VlagaMax', r.hum + ' шт'],
+    ['Зон управления влажностью', r.rooms],
+    ['Точек подачи пара (сопла)', r.out],
+    ['Монтаж, настройка и запуск', 'под ключ']
+  ];
+  document.getElementById('r_compose').innerHTML =
+    items.map(function(i){ return '<li><span>'+i[0]+'</span><span>'+i[1]+'</span></li>'; }).join('');
+
+  document.getElementById('result').classList.add('show');
+}
+
+/* Пресеты */
+var presetBtns = document.querySelectorAll('.preset');
+presetBtns.forEach(function(b){
+  b.addEventListener('click', function(){
+    presetBtns.forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    var area = +b.dataset.area, rooms = +b.dataset.rooms;
+    document.getElementById('f_area').value  = area;
+    document.getElementById('f_rooms').value = rooms;
+    show(area, rooms);
+    document.getElementById('result').scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+});
+
+/* Свой расчёт */
+document.getElementById('calcBtn').addEventListener('click', function(){
+  var area  = parseFloat(document.getElementById('f_area').value)  || 0;
+  var rooms = parseInt(document.getElementById('f_rooms').value, 10) || 0;
+  if(area < 10 || rooms < 1){
+    alert('Укажите площадь (от 10 м²) и количество комнат (от 1).');
+    return;
+  }
+  presetBtns.forEach(function(x){ x.classList.remove('active'); });
+  show(area, rooms);
+});
+
+/* Демо-версия кнопки заявки (на сайте здесь откроется форма Tilda) */
+document.getElementById('ctaBtn').addEventListener('click', function(){
+  alert('Это демо. На сайте здесь откроется форма заявки — менеджер свяжется с вами и подготовит точный расчёт под ваше помещение.');
+});
+</script>
+</body>
+</html>
