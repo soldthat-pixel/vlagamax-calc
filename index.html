@@ -106,9 +106,10 @@
   .r-price small{font-size:19px;font-weight:800;color:var(--accent);}
 
   .compose{list-style:none;padding:0;margin:0 0 18px;border-top:1px solid var(--line);}
-  .compose li{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px;}
-  .compose li span:first-child{color:var(--text);}
-  .compose li span:last-child{color:var(--muted);font-weight:800;white-space:nowrap;}
+  .compose li{display:flex;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px;}
+  .compose .c-name{flex:1;color:var(--text);}
+  .compose .c-qty{color:var(--muted);font-size:13px;white-space:nowrap;}
+  .compose .c-sum{color:var(--text);font-weight:800;white-space:nowrap;min-width:96px;text-align:right;}
 
   .disclaimer{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
   .cta-row{display:grid;grid-template-columns:1fr;gap:10px;}
@@ -147,7 +148,7 @@
 
   <section class="calc">
     <h1>Калькулятор стоимости системы увлажнения</h1>
-    <p class="lead">Выберите готовый вариант или укажите свои параметры — и узнайте примерную стоимость оборудования и материалов VlagaMax для вашего помещения.</p>
+    <p class="lead">Выберите готовый вариант или укажите свои параметры — и узнайте примерную стоимость оборудования VlagaMax для вашего помещения.</p>
 
     <p class="block-title">Готовые варианты</p>
     <div class="presets" id="presets">
@@ -231,30 +232,41 @@ function calc(area, rooms){
   var model = humModel(area);
   var humSum = hc === 1 ? P[model] : P.hum10 * hc;
 
-  var equip = humSum + P.valve*rooms + P.panel*rooms + P.module*rooms + P.nozzle*out;
-  var mat   = P.steam*out + P.wire*1;
-  // Монтаж, настройка и запуск в стоимость НЕ входят — только оборудование и материалы.
+  /* Сумма разбита на 4 подраздела (как в КП). Монтаж, настройка и запуск
+     в стоимость НЕ входят — считаем только оборудование и материалы
+     (паропроводы/фитинги, провод, сопла). */
+  var cat = {
+    equip:  humSum,                              // Основное оборудование
+    valve:  P.valve*rooms,                       // Электроклапаны
+    panel:  (P.panel + P.module)*rooms,          // Пульты и датчики влаги
+    filter: P.nozzle*out + P.steam*out + P.wire  // Фильтрация и фитинги
+  };
+  var total = cat.equip + cat.valve + cat.panel + cat.filter;
 
-  return { total: equip+mat, hum: hc, rooms: rooms, out: out };
+  return { total: total, hum: hc, rooms: rooms, out: out, cat: cat };
 }
 
 function fmt(n){ return n.toLocaleString('ru-RU').replace(/,/g,' '); }
-function roundK(n){ return Math.round(n/1000)*1000; }   // округляем до тысяч — «примерно»
 
 function show(area, rooms){
   var r = calc(area, rooms);
   document.getElementById('r_params').textContent =
     'Площадь ' + fmt(area) + ' м² · комнат для увлажнения: ' + rooms;
   document.getElementById('r_price').innerHTML =
-    'Примерно ' + fmt(roundK(r.total)) + ' <small>₽</small>';
+    fmt(r.total) + ' <small>₽</small>';
 
-  var items = [
-    ['Увлажнитель VlagaMax', r.hum + ' шт'],
-    ['Зон управления влажностью', r.rooms],
-    ['Точек подачи пара (сопла)', r.out]
+  var rows = [
+    ['Основное оборудование',  r.hum + ' шт',   r.cat.equip],
+    ['Электроклапаны',         r.rooms + ' шт', r.cat.valve],
+    ['Пульты и датчики влаги', r.rooms + ' шт', r.cat.panel],
+    ['Фильтрация и фитинги',   'комплект',      r.cat.filter]
   ];
   document.getElementById('r_compose').innerHTML =
-    items.map(function(i){ return '<li><span>'+i[0]+'</span><span>'+i[1]+'</span></li>'; }).join('');
+    rows.map(function(i){
+      return '<li><span class="c-name">'+i[0]+'</span>'+
+             '<span class="c-qty">'+i[1]+'</span>'+
+             '<span class="c-sum">'+fmt(i[2])+' ₽</span></li>';
+    }).join('');
 
   document.getElementById('result').classList.add('show');
 }
