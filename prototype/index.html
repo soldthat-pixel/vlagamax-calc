@@ -470,7 +470,7 @@ autoStart = false;
     drawer.addEventListener('mouseenter', open);
     drawer.addEventListener('mouseleave', function(){
       clearTimeout(closeTimer);
-      closeTimer = setTimeout(function(){ if(!isTyping()) close(); }, 500);
+      closeTimer = setTimeout(function(){ if(!isTyping()) close(); }, 2500);   // задержка закрытия после ухода мыши, мс
     });
   }
   tab.addEventListener('click', function(){
