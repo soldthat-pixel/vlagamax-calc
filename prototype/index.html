@@ -308,7 +308,7 @@ var P = {
   tubeMeters:    20,  // метров трубки в наборе (по 20 м на установку)
 
   /* --- 3. МАТЕРИАЛЫ НА ВЫХОД ПАРА — на КАЖДУЮ комнату (входят в строку
-     «Фильтрация и фитинги»). Цена комплекта как в КП, позиция M01. --- */
+     «Фильтрация, фитинги и пароканалы»). Цена комплекта как в КП, позиция M01. --- */
   steamKit:   10000   // Паропроводы, фитинги, крепёж — комплект на 1 комнату
 };
 /* ======================= ниже ничего не менять ======================= */
@@ -341,7 +341,7 @@ function calc(area, rooms){
     valve:  P.valve*rooms,                   // Электроклапаны
     panel:  (P.panel + P.module + P.box)*rooms, // Пульты и датчики влаги + монтажные коробки
     nozzle: P.nozzle*rooms,                  // Сопла выхода пара (1 на комнату)
-    filter: filterSet()*hc + P.steamKit*rooms // Фильтрация и фитинги: набор × установки + паропроводы на комнаты
+    filter: filterSet()*hc + P.steamKit*rooms // Фильтрация, фитинги и пароканалы: набор × установки + паропроводы на комнаты
   };
   var total = cat.equip + cat.valve + cat.panel + cat.nozzle + cat.filter;
   return { total: total, hum: hc, rooms: rooms, cat: cat };
@@ -363,7 +363,7 @@ function show(area, rooms){
     ['Электроклапаны',         r.rooms + ' шт', r.cat.valve],
     ['Пульты и датчики влаги', r.rooms + ' шт', r.cat.panel],
     ['Сопла выхода пара',     r.rooms + ' шт', r.cat.nozzle],
-    ['Фильтрация и фитинги',   filterQty,       r.cat.filter]
+    ['Фильтрация, фитинги и пароканалы', filterQty,       r.cat.filter]
   ];
   $('vm_compose').innerHTML = rows.map(function(i){
     return '<li><span class="vm-c-name">'+i[0]+'</span>'+
