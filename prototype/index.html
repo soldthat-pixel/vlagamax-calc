@@ -290,6 +290,7 @@ var P = {
   valve:   15750,   // стр.21 VMK01TUZ   — Клапан с электроприводом (на комнату)
   panel:   10500,   // стр.24 VMPV01WTUW — Пульт с датчиком влаги/темп. (на комнату)
   module:   2100,   // стр.26 VMMKN1WTUZ — Модуль Zigbee для пульта (на комнату)
+  nozzle:   3150,   // стр.41 VMS50KHW   — Сопло выхода пара (1 на комнату; все сопла в тарифе по одной цене)
 
   /* --- 2. ФИЛЬТРАЦИЯ И ФИТИНГИ — фиксированный набор на ОДНУ установку.
      Все позиции по 1 шт, трубка — 20 метров. Сумма набора не зависит от
@@ -334,9 +335,10 @@ function calc(area, rooms){
     equip:  humSum,                          // Основное оборудование
     valve:  P.valve*rooms,                   // Электроклапаны
     panel:  (P.panel + P.module)*rooms,      // Пульты и датчики влаги
+    nozzle: P.nozzle*rooms,                  // Сопла выхода пара (1 на комнату)
     filter: filterSet()*hc                   // Фильтрация и фитинги (× кол-во установок)
   };
-  var total = cat.equip + cat.valve + cat.panel + cat.filter;
+  var total = cat.equip + cat.valve + cat.panel + cat.nozzle + cat.filter;
   return { total: total, hum: hc, rooms: rooms, cat: cat };
 }
 
@@ -355,6 +357,7 @@ function show(area, rooms){
     ['Основное оборудование',  r.hum + ' шт',   r.cat.equip],
     ['Электроклапаны',         r.rooms + ' шт', r.cat.valve],
     ['Пульты и датчики влаги', r.rooms + ' шт', r.cat.panel],
+    ['Сопла выхода пара',     r.rooms + ' шт', r.cat.nozzle],
     ['Фильтрация и фитинги',   filterQty,       r.cat.filter]
   ];
   $('vm_compose').innerHTML = rows.map(function(i){
