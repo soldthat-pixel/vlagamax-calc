@@ -53,7 +53,6 @@
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:stretch;}
   /* колонки одинаковой высоты, кнопки прижаты к низу — чтобы стояли вровень */
   .col-input{display:flex;flex-direction:column;padding-bottom:18px;}
-  .col-input #calcBtn{margin-top:auto;}
   .col-result{display:flex;}
   .col-result .result{flex:1;display:flex;flex-direction:column;}
   .result #ctaBtn{margin-top:auto;}
@@ -152,7 +151,6 @@
             <input type="number" id="f_rooms" inputmode="numeric" min="1" max="30" step="1" placeholder="3">
           </div>
         </div>
-        <button class="btn" id="calcBtn">Рассчитать стоимость</button>
       </div>
 
       <!-- ПРАВАЯ КОЛОНКА: результат -->
@@ -284,16 +282,19 @@ presetBtns.forEach(function(b){
   });
 });
 
-/* Свой расчёт */
-document.getElementById('calcBtn').addEventListener('click', function(){
+/* Свой расчёт — считается сам, пока человек вводит цифры (кнопка не нужна).
+   Пока число не дописано (площадь меньше 10 м² или комнат 0) — оставляем прошлый результат. */
+function onType(){
   var area  = parseFloat(document.getElementById('f_area').value)  || 0;
   var rooms = parseInt(document.getElementById('f_rooms').value, 10) || 0;
-  if(area < 10 || rooms < 1){
-    alert('Укажите площадь (от 10 м²) и количество комнат (от 1).');
-    return;
-  }
+  if(area < 10 || area > 5000 || rooms < 1 || rooms > 30) return;
   presetBtns.forEach(function(x){ x.classList.remove('active'); });
   show(area, rooms);
+}
+['f_area','f_rooms'].forEach(function(id){
+  var el = document.getElementById(id);
+  el.addEventListener('input', onType);
+  el.addEventListener('keydown', function(e){ if(e.key === 'Enter') el.blur(); });
 });
 
 /* Кнопка заявки (на сайте здесь откроется форма заявки Tilda) */
